@@ -5,6 +5,7 @@ import org.magnum.dataup.model.Video;
 import org.magnum.dataup.dao.VideoRepository;
 import org.magnum.dataup.model.VideoStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -35,19 +36,30 @@ public class VideoService {
     }
 
 
-    public void streamVideo(final Long videoId, final HttpServletResponse response) {
-        Video video = repository.findOne(videoId);
-        try {
-            VideoFileManager manager = VideoFileManager.get();
-            if (video != null && manager.hasVideoData(video)) {
-                response.setContentType(video.getContentType());
-                manager.copyVideoData(video, response.getOutputStream());
-            } else {
-                response.setStatus(404);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Error while fetching video data", e);
+    public void streamVideo(final Long videoId, final HttpServletResponse response) throws IOException {
+        final Video video = repository.findOne(videoId);
+        if (video == null) {
+            throw new ResourceNotFoundException("Unknown video");
         }
+
+        final VideoFileManager manager = VideoFileManager.get();
+        if (!manager.hasVideoData(video)) {
+            throw new ResourceNotFoundException("Unable to stream video, no video data has been uploaded.");
+        }
+
+        response.setContentType(video.getContentType());
+        manager.copyVideoData(video, response.getOutputStream());
+    }
+
+    public VideoStatus setVideoData(long videoId, MultipartFile videoData) throws IOException {
+        final Video video = repository.findOne(videoId);
+        if (video == null) {
+            throw new ResourceNotFoundException("Unknown video");
+        }
+
+        VideoFileManager manager = VideoFileManager.get();
+        manager.saveVideoData(video, videoData.getInputStream());
+        return new VideoStatus(VideoStatus.VideoState.READY);
     }
 
     private String getDataUrl(long videoId){
@@ -55,24 +67,10 @@ public class VideoService {
     }
 
     private String getUrlBaseForLocalServer() {
-        HttpServletRequest request =
+        final HttpServletRequest request =
                 ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
         return "http://"+request.getServerName()
                 + ((request.getServerPort() != 80) ? ":"+request.getServerPort() : "");
     }
 
-    public VideoStatus setVideoData(long videoId, MultipartFile videoData, HttpServletResponse response) {
-        Video video = repository.findOne(videoId);
-        if (video == null) {
-            response.setStatus(404);
-            return null;
-        }
-        try {
-            VideoFileManager manager = VideoFileManager.get();
-            manager.saveVideoData(video, videoData.getInputStream());
-            return new VideoStatus(VideoStatus.VideoState.READY);
-        } catch (IOException e) {
-            throw new RuntimeException("Error while saving video data", e);
-        }
-    }
 }

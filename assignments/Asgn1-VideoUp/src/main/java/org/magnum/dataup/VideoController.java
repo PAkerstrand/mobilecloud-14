@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.Collection;
 
 @Controller
@@ -50,15 +51,14 @@ public class VideoController {
     }
 
     @RequestMapping(value = "/video/{id}/data")
-    public void getVideoData (@PathVariable("id") long videoId, HttpServletResponse response) {
+    public void getVideoData (@PathVariable("id") long videoId, HttpServletResponse response) throws IOException {
         service.streamVideo(videoId, response);
     }
 
     @RequestMapping(value = "/video/{id}/data", method = RequestMethod.POST)
     @ResponseBody
-    public VideoStatus postVideoData (@PathVariable("id") long videoId,
-                                      @RequestParam("data") MultipartFile videoData,
-                                      HttpServletResponse response) {
-        return service.setVideoData(videoId, videoData, response);
+    public VideoStatus postVideoData(@PathVariable("id") long videoId,
+                                     @RequestParam("data") MultipartFile videoData) throws IOException {
+        return service.setVideoData(videoId, videoData);
     }
 }

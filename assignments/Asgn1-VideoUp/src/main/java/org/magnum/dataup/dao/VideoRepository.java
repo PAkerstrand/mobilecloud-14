@@ -1,6 +1,5 @@
 package org.magnum.dataup.dao;
 
-import org.magnum.dataup.model.DuplicateResourceException;
 import org.magnum.dataup.model.Video;
 import org.springframework.stereotype.Repository;
 
@@ -23,9 +22,6 @@ public class VideoRepository {
     }
 
     public long create(Video video) {
-        if (video.getId() != 0) {
-            throw new DuplicateResourceException("Video is already created");
-        }
         long videoId = nextVideoId.getAndIncrement();
         video.setId(videoId);
         videos.put(video.getId(), video);
