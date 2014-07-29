@@ -1,5 +1,7 @@
-package org.magnum.dataup.model;
+package org.magnum.dataup.dao;
 
+import org.magnum.dataup.model.DuplicateResourceException;
+import org.magnum.dataup.model.Video;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collection;

@@ -2,7 +2,7 @@ package org.magnum.dataup.service;
 
 import org.magnum.dataup.VideoFileManager;
 import org.magnum.dataup.model.Video;
-import org.magnum.dataup.model.VideoRepository;
+import org.magnum.dataup.dao.VideoRepository;
 import org.magnum.dataup.model.VideoStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
